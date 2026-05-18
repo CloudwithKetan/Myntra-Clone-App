@@ -219,6 +219,7 @@ pipeline {
     }
 
     stages {
+
         stage('Clean Workspace') {
             steps {
                 cleanWs()
@@ -227,7 +228,8 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: "https://github.com/${env.GIT_USER_NAME}/${env.GIT_REPO_NAME}.git"
+                git branch: 'main',
+                url: "https://github.com/${env.GIT_USER_NAME}/${env.GIT_REPO_NAME}.git"
             }
         }
 
@@ -255,9 +257,10 @@ pipeline {
             }
         }
 
-       stage('Build & Push Docker Image') {
+        stage('Build & Push Docker Image') {
             steps {
                 script {
+
                     def imageTag = "${DOCKER_IMAGE}:${BUILD_NUMBER}"
                     def registryImageTag = "${DOCKER_REGISTRY}/${imageTag}"
 
@@ -283,26 +286,34 @@ pipeline {
             }
         }
 
-        stage('Update Manifest and Push to GitHub') {
+        stage('Update Deployment File') {
             steps {
-                script {
-                    def newImage = "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}"
-                    withCredentials([usernamePassword(credentialsId: 'git-cred', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        sh """
-                            git config user.email "${GIT_EMAIL}"
-                            git config user.name "${GIT_USER_NAME}"
-                            sed -i 's|image: .*|image: ${newImage}|g' ${MANIFEST_FILE}
-                            git add ${MANIFEST_FILE}
-                            git commit -m "Update image to ${BUILD_NUMBER}" || echo "No changes"
-                            git push https://${GIT_USER}:${GIT_PASS}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
-                        """
-                    }
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'git-cred',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_PASS'
+                    )
+                ]) {
+
+                    sh '''
+                        git config user.email "ketandhadve95@gmail.com"
+                        git config user.name "CloudwithKetan"
+
+                        sed -i "s|image: .*|image: cloudwithketan/myntraa:${BUILD_NUMBER}|g" k8s/deployment.yml
+
+                        git add k8s/deployment.yml
+
+                        git commit -m "Update image to ${BUILD_NUMBER}"
+
+                        git push https://${GIT_USER}:${GIT_PASS}@github.com/CloudwithKetan/Myntra-Clone-App.git HEAD:main
+                    '''
                 }
             }
         }
     }
 }
-
 ```
 
 
