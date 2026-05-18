@@ -210,12 +210,12 @@ pipeline {
     environment {
         SCANNER_HOME          = tool 'sonar-scanner'
         DOCKER_IMAGE          = 'myntraa'
-        DOCKER_REGISTRY       = 'abhipraydh96'
+        DOCKER_REGISTRY       = 'cloudwithketan'
         DOCKER_CREDENTIALS_ID = 'docker-cred'
         MANIFEST_FILE         = 'k8s/deployment.yml'
-        GIT_REPO_NAME         = 'Project-Myntra-Clone'
-        GIT_USER_NAME         = 'abhipraydhoble'
-        GIT_EMAIL             = 'abhipraydh96@gmail.com'
+        GIT_REPO_NAME         = 'Myntra-Clone-App'
+        GIT_USER_NAME         = 'CloudwithKetan'
+        GIT_EMAIL             = 'ketandhadve95@gmail.com'
     }
 
     stages {
@@ -255,7 +255,7 @@ pipeline {
             }
         }
 
-        stage('Build & Push Docker Image') {
+       stage('Build & Push Docker Image') {
             steps {
                 script {
                     def imageTag = "${DOCKER_IMAGE}:${BUILD_NUMBER}"
@@ -263,9 +263,19 @@ pipeline {
 
                     sh "docker build -t ${imageTag} ."
 
-                    withDockerRegistry(credentialsId: DOCKER_CREDENTIALS_ID, toolName: 'docker') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: DOCKER_CREDENTIALS_ID,
+                            usernameVariable: 'DOCKER_USER',
+                            passwordVariable: 'DOCKER_PASS'
+                        )
+                    ]) {
+
                         sh """
+                            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+
                             docker tag ${imageTag} ${registryImageTag}
+
                             docker push ${registryImageTag}
                         """
                     }
