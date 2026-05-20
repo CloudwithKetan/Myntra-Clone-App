@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: myntra
-        image: cloudwithketan/myntraa:24
+        image: cloudwithketan/myntraa:25
         ports:
         - containerPort: 3000   # Use port 3000
 
